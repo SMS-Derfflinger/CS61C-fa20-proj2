@@ -236,17 +236,21 @@ class TestMatmul(TestCase):
         array_out = t.array([0] * len(result))
 
         # load address of input matrices and set their dimensions
-        raise NotImplementedError("TODO")
-        # TODO
+        t.input_array("a0", array0)
+        t.input_scalar("a1", m0_rows)
+        t.input_scalar("a2", m0_cols)
+        t.input_array("a3", array1)
+        t.input_scalar("a4", m1_rows)
+        t.input_scalar("a5", m1_cols)
         # load address of output array
-        # TODO
+        t.input_array("a6", array_out)
 
         # call the matmul function
         t.call("matmul")
 
         # check the content of the output array
-        # TODO
-
+        if code == 0:
+            t.check_array(array_out, result)
         # generate the assembly file and run it through venus, we expect the simulation to exit with code `code`
         t.execute(code=code)
 
@@ -255,6 +259,52 @@ class TestMatmul(TestCase):
             [1, 2, 3, 4, 5, 6, 7, 8, 9], 3, 3,
             [1, 2, 3, 4, 5, 6, 7, 8, 9], 3, 3,
             [30, 36, 42, 66, 81, 96, 102, 126, 150]
+        )
+
+    def test_incompatible_matrices(self):
+        self.do_matmul(
+            [1, 2, 3], 1, 3,  # 1x3 matrix
+            [4, 5], 1, 2,  # 1x2 matrix (incompatible)
+            [],  # No expected result, should exit with code 74
+            code=74
+        )
+
+    def test_non_square(self):
+        self.do_matmul(
+            [1, 2, 3, 4, 5, 6], 2, 3,  # 2x3 matrix
+            [7, 8, 9, 10, 11, 12], 3, 2,  # 3x2 matrix
+            [58, 64, 139, 154]  # Resulting 2x2 matrix
+        )
+
+    def test_zero_matrix(self):
+        self.do_matmul(
+            [0, 0, 0, 0], 2, 2,  # 2x2 zero matrix
+            [1, 2, 3, 4], 2, 2,  # 2x2 matrix
+            [0, 0, 0, 0]  # Resulting 2x2 zero matrix
+        )
+
+    def test_different_sizes(self):
+        self.do_matmul(
+            [1, 2, 3, 4], 2, 2,  # 2x2 matrix
+            [5, 6, 7, 8, 9, 10], 2, 3,  # 2x3 matrix
+            [21, 24, 27, 47, 54, 61]  # Resulting 2x3 matrix
+        )
+
+    def test_invalid_dimensions(self):
+        # m0 has invalid dimensions
+        self.do_matmul(
+            [], 0, 2,  # Invalid 0x2 matrix
+            [1, 2, 3, 4], 2, 2,  # 2x2 matrix
+            [],  # No expected result, should exit with code 72
+            code=72
+        )
+
+    def test_invalid_dimensions1(self):
+        self.do_matmul(
+            [1, 2, 3, 4], 2, 2,  # 2x2 matrix
+            [], 0, 2,  # Invalid 0x2 matrix
+            [],  # No expected result, should exit with code 73
+            code=73
         )
 
     @classmethod
