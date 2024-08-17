@@ -47,11 +47,11 @@ loop_continue:
     mul t6, t2, t5 # t6 is the value of v0[t0] * v1[t3]
     add s0, s0, t6
 
+    bgt t0, a2, loop_end # if t0 > a2 then loop_end
+    bgt t3, a2, loop_end # if t3 > a2 then loop_end
+
     add t0, t0, a3
     add t3, t3, a4
-    bge t0, a2, loop_end # if t0 >= a2 then loop_end
-    bge t3, a2, loop_end # if t3 >= a2 then loop_end
-
     j loop_continue
 
 loop_end:
